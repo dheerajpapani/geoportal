@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, GeoJSON, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, GeoJSON, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 
 export default function MapView() {
@@ -9,13 +9,14 @@ export default function MapView() {
   const [popupData, setPopupData] = useState(null);
 
   useEffect(() => {
-    fetch(
-      'http://localhost:8080/geoserver/geoportal/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=geoportal:ne_50m_admin_0_countries&outputFormat=application/json'
-    )
+    fetch('/ne_50m_admin_0_countries.json')  // <-- changed this line to load from public folder
       .then((res) => res.json())
       .then((data) => {
         setCountriesGeoJSON(data);
         setFilteredCountries(null); // default: show nothing
+      })
+      .catch((err) => {
+        console.error('Failed to load countries.json', err);
       });
   }, []);
 
@@ -55,7 +56,17 @@ export default function MapView() {
 
   return (
     <>
-      <div style={{ position: 'absolute', zIndex: 1000, top: 10, left: 10, background: '#fff', padding: 10, borderRadius: 8 }}>
+      <div
+        style={{
+          position: 'absolute',
+          zIndex: 1000,
+          top: 10,
+          left: 10,
+          background: '#fff',
+          padding: 10,
+          borderRadius: 8,
+        }}
+      >
         <label>Filter by Continent: </label>
         <select
           value={selectedContinent}
@@ -71,10 +82,14 @@ export default function MapView() {
         </select>
       </div>
 
-      <MapContainer center={[20, 0]} zoom={2} style={{ height: '100vh', width: '100%' }}>
+      <MapContainer
+        center={[20, 0]}
+        zoom={2}
+        style={{ height: '100vh', width: '100%' }}
+      >
         <TileLayer
-          attribution='&copy; OpenStreetMap contributors'
-          url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+          attribution="&copy; OpenStreetMap contributors"
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
         {filteredCountries && (
@@ -89,7 +104,8 @@ export default function MapView() {
         {popupData && (
           <Popup position={popupData.latlng}>
             <div>
-              <strong>{popupData.name}</strong><br />
+              <strong>{popupData.name}</strong>
+              <br />
               Continent: {popupData.continent}
             </div>
           </Popup>
